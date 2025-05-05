@@ -1,51 +1,37 @@
 import socket
 import threading
+from sala import Sala  # Certifique-se de que este arquivo está correto
 
-clientes = []
-fila = []
+fila_espera = []
+fila_lock = threading.Lock()  # Protege o acesso à fila de espera
 
-def broadcast_mensagem(msg):
-    for cliente in clientes:
-        try:
-            cliente.sendall(msg.encode())
-        except:
-            pass
+def lidar_com_cliente(conn, addr):
+    print(f"Novo jogador conectado: {addr}")
+    
+    try:
+        conn.sendall(b"Conectado ao servidor!\nAguardando outro jogador...\n")
+    except:
+        print(f"Erro ao enviar mensagem para {addr}")
+        conn.close()
+        return
 
-def lidar_com_cliente(conexao, endereco):
-    print(f"[+] Conectado com {endereco}")
-    clientes.append(conexao)
-    while True:
-        try:
-            dados = conexao.recv(1024).decode()
-            if not dados:
-                break
-            if dados == "Okay":
-                if endereco not in fila:
-                    fila.append(endereco)
-            elif dados == "Sair":
-                if endereco in fila:
-                    fila.remove(endereco)
-            print(f"[Fila] {fila}")
-            broadcast_mensagem(f"Pessoas na fila: {len(fila)}")
-        except:
-            break
-    conexao.close()
-    if conexao in clientes:
-        clientes.remove(conexao)
-    if endereco in fila:
-        fila.remove(endereco)
-    broadcast_mensagem(f"Pessoas na fila: {len(fila)}")
-    print(f"[-] Desconectado {endereco}")
+    with fila_lock:
+        fila_espera.append(conn)
+        if len(fila_espera) >= 2:
+            jogador1 = fila_espera.pop(0)
+            jogador2 = fila_espera.pop(0)
+            print(f"Emparelhando jogadores {jogador1.getpeername()} e {jogador2.getpeername()}")
+            threading.Thread(target=Sala, args=(jogador1, jogador2)).start()
 
 def iniciar_servidor(host='localhost', porta=12345):
     servidor = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     servidor.bind((host, porta))
     servidor.listen()
-    print(f"[Servidor] Aguardando conexões em {host}:{porta}...")
-    while True:
-        conexao, endereco = servidor.accept()
-        threading.Thread(target=lidar_com_cliente, args=(conexao, endereco)).start()
+    print(f"Servidor iniciado em {host}:{porta}")
 
-if __name__ == "__main__":
-    
+    while True:
+        conn, addr = servidor.accept()
+        threading.Thread(target=lidar_com_cliente, args=(conn, addr)).start()
+
+if __name__ == '__main__':
     iniciar_servidor()

@@ -1,29 +1,56 @@
 import socket
-import threading
 
-def ouvir_servidor(sock):
-    while True:
-        try:
-            msg = sock.recv(1024).decode()
-            if msg:
-                print(f"[Atualização] {msg}")
-        except:
-            print("[!] Conexão com servidor perdida.")
-            break
+def conectar_ao_servidor():
+    """
+    Conecta o cliente ao servidor e gerencia o fluxo de comunicação.
+    """
+    try:
+        # Cria o socket do cliente
+        cliente_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-def iniciar_cliente(host='localhost', porta=12345):
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect((host, porta))
-    threading.Thread(target=ouvir_servidor, args=(sock,), daemon=True).start()
+        # Conecta ao servidor
+        cliente_socket.connect(('localhost', 12345))  # Defina o IP e porta do servidor
+        print("Conectado ao servidor!")
+        
+        # Recebe a mensagem inicial de boas-vindas e qual jogador é
+        mensagem_inicial = cliente_socket.recv(1024).decode()
+        print(mensagem_inicial)
 
-    print("Digite 'Okay' para entrar na fila ou 'Sair' para sair.")
-    while True:
-        comando = input(">>> ").strip()
-        if comando.lower() in ["okay", "sair"]:
-            sock.sendall(comando.encode())
-        else:
-            print("Comando inválido.")
+        # Jogo da Velha - Loop de jogadas
+        while True:
+            # Exibe o tabuleiro
+            tabuleiro = cliente_socket.recv(1024).decode()
+            print(tabuleiro)
+
+            # Recebe a mensagem de turno
+            turno = cliente_socket.recv(1024).decode()
+            print(turno)
+
+            # Solicita a jogada do jogador
+            jogada = input("Escolha sua jogada (1-9): ")
+
+            # Envia a jogada para o servidor
+            cliente_socket.sendall(jogada.encode())
+
+            # Espera pela resposta do servidor sobre o andamento do jogo
+            resultado = cliente_socket.recv(1024).decode()
+            print(resultado)
+
+            # Se o jogo acabou, pergunta se deseja continuar
+            if "vencedor" in resultado or "empate" in resultado:
+                resposta = input("Deseja continuar jogando com o mesmo parceiro? (sim/não): ")
+                cliente_socket.sendall(resposta.encode())
+
+                # Se o jogador não quiser continuar, encerra a conexão
+                if resposta.lower() == "não":
+                    print("Você optou por sair do jogo.")
+                    break
+
+        # Fecha a conexão com o servidor
+        cliente_socket.close()
+
+    except Exception as e:
+        print(f"Ocorreu um erro: {e}")
 
 if __name__ == "__main__":
-    
-    iniciar_cliente()
+    conectar_ao_servidor()

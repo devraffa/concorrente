@@ -1,26 +1,40 @@
-# jogo.py
+class JogoDaVela:
+    def __init__(self):
+        self.tabuleiro = {
+            '7': ' ', '8': ' ', '9': ' ',
+            '4': ' ', '5': ' ', '6': ' ',
+            '1': ' ', '2': ' ', '3': ' '
+        }
 
-tabuleiro = [' '] * 9 
+    def exibir_tabuleiro(self):
+        return (
+            f"┌───┬───┬───┐\n"
+            f"│ {self.tabuleiro['7']} │ {self.tabuleiro['8']} │ {self.tabuleiro['9']} │\n"
+            f"├───┼───┼───┤\n"
+            f"│ {self.tabuleiro['4']} │ {self.tabuleiro['5']} │ {self.tabuleiro['6']} │\n"
+            f"├───┼───┼───┤\n"
+            f"│ {self.tabuleiro['1']} │ {self.tabuleiro['2']} │ {self.tabuleiro['3']} │\n"
+            f"└───┴───┴───┘\n"
+        )
 
-def imprimir_tabuleiro():
-    print(f"\n{tabuleiro[0]} | {tabuleiro[1]} | {tabuleiro[2]}")
-    print("--+---+--")
-    print(f"{tabuleiro[3]} | {tabuleiro[4]} | {tabuleiro[5]}")
-    print("--+---+--")
-    print(f"{tabuleiro[6]} | {tabuleiro[7]} | {tabuleiro[8]}")
-    print("\n")
+    def verificar_vitoria(self):
+        comb = [
+            ('7', '8', '9'), ('4', '5', '6'), ('1', '2', '3'),
+            ('7', '4', '1'), ('8', '5', '2'), ('9', '6', '3'),
+            ('7', '5', '3'), ('1', '5', '9')
+        ]
+        for a, b, c in comb:
+            if self.tabuleiro[a] == self.tabuleiro[b] == self.tabuleiro[c] != ' ':
+                return self.tabuleiro[a]
+        if ' ' not in self.tabuleiro.values():
+            return 'empate'
+        return None
 
+    def fazer_jogada(self, pos, jogador):
+        if pos in self.tabuleiro and self.tabuleiro[pos] == ' ':
+            self.tabuleiro[pos] = jogador
+            return True
+        return False
 
-def verificar_vitoria():
-    vitoria_possibilidades = [
-        [0, 1, 2], [3, 4, 5], [6, 7, 8],  
-        [0, 3, 6], [1, 4, 7], [2, 5, 8],  
-        [0, 4, 8], [2, 4, 6] 
-    ]
-    
-    for pos in vitoria_possibilidades:
-        if tabuleiro[pos[0]] == tabuleiro[pos[1]] == tabuleiro[pos[2]] != ' ':
-            return tabuleiro[pos[0]] 
-    if ' ' not in tabuleiro: 
-        return 'Empate'
-    return None
+    def get_tabuleiro(self):
+        return self.tabuleiro
