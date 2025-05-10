@@ -8,11 +8,14 @@ def receber_mensagens(sock):
             mensagem = sock.recv(1024).decode()
             if not mensagem:
                 break
-            if mensagem.strip().upper() == "SAIR":
-                print("[CLIENTE] Servidor encerrou a conexão.")
+            if mensagem.strip().startswith("┌") or "│" in mensagem:
+                print(mensagem, end='')  # imprime o tabuleiro sem prefixo
+            elif mensagem.strip().upper() == "DESCONECTADO":
+                print("[CLIENTE] Você foi desconectado pelo servidor.")
                 sock.close()
                 return
-            print(mensagem)
+            elif mensagem.strip() != "":
+                print(f"[CLIENTE] {mensagem.strip()}")
         except:
             break
 
@@ -31,10 +34,14 @@ def enviar_para_servidor(sock):
 def main():
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect(('localhost', 12345))
-    print("[CLIENTE] Conectado ao servidor!")
+    nome = input("Digite seu nome de login: ")
+    sock.sendall(nome.encode())
+    print("[CLIENTE] Conectado ao servidor! Aguardando outro jogador...")
 
-    threading.Thread(target=receber_mensagens, args=(sock,), daemon=True).start()
+    t = threading.Thread(target=receber_mensagens, args=(sock,), daemon=True)
+    t.start()
     enviar_para_servidor(sock)
+    t.join()
 
 if __name__ == "__main__":
     main()
