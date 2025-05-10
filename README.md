@@ -14,9 +14,7 @@
     - O jogador retornar para a fila na opção quer quer continuar jogando mas o outro diz primeiro que vai sair (O encerra a conexão normalmente de um mas o outro não volta para a fila)
 
 ## Últimas correções:
-    - Ao encerrar a partida se um deles quiser continuar ele volta para a fila
-    - Encerrando a conexão da sala corretamente
-    - Adicionado nome de login para controle visual
+
 
 
 ## Não implementado
