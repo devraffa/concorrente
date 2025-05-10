@@ -3,19 +3,19 @@
 ## Funcionalidades corretas:
     - Fila de espera
     - Conexão entre pares
-    - Lógica do jogo
+    - Lógica do jogo da velha
     - Jogar novamente (se ambos quiserem)
     - Encerrar a PRÓPRIA conexão a qualquer momento (digitando SAIR)
 
-
-
 ## Erros:
-    - Encerrar conexão ao final da partida (Da seleção se deseja continuar ou não)
-    - Encerrar a conexão do outro se um dos jogadores sair no meio da partida
-    - O jogador que decide continuar não volta para a fila de espera (não está encerrado o processo da sala)
+    - Necessários inputs repetidos no terminal para encerrar de fato a conexão
 
+## Últimas correções:
+    - Ao encerrar a partida se um deles quiser continuar ele volta para a fila (falta mensagem de aviso)
+    - Encerrando a conexão da sala corretamente (Com uma ressalva de inputs repetidos para finalizar o script de fato)
 
 
 ## Não implementado
     - Sistema de "login" para contagem de vitórias
     - Métricas de desempenho
+    - "Printar" no terminal do servidor quando um cliente se desconecta (e qual se desconectou)

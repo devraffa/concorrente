@@ -1,4 +1,4 @@
-# cliente.py
+## cliente.py
 import socket
 import threading
 
@@ -9,10 +9,22 @@ def receber_mensagens(sock):
             if not mensagem:
                 break
             if mensagem.strip().upper() == "SAIR":
-                print("[CLIENTE] Conexão encerrada.")
+                print("[CLIENTE] Servidor encerrou a conexão.")
                 sock.close()
                 return
             print(mensagem)
+        except:
+            break
+
+def enviar_para_servidor(sock):
+    while True:
+        try:
+            msg = input()
+            sock.sendall(msg.encode())
+            if msg.strip().upper() == "SAIR":
+                print("[CLIENTE] Você encerrou a conexão.")
+                sock.close()
+                return
         except:
             break
 
@@ -22,17 +34,7 @@ def main():
     print("[CLIENTE] Conectado ao servidor!")
 
     threading.Thread(target=receber_mensagens, args=(sock,), daemon=True).start()
-
-    while True:
-        try:
-            msg = input()
-            if msg.strip().upper() == "SAIR":
-                sock.sendall("SAIR".encode())
-                sock.close()
-                break
-            sock.sendall(msg.encode())
-        except:
-            break
+    enviar_para_servidor(sock)
 
 if __name__ == "__main__":
     main()

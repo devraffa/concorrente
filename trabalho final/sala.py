@@ -1,14 +1,15 @@
-# sala.py
+## sala.py
 import threading
-from jogo import JogoDaVela
 import socket
 import time
+from jogo import JogoDaVela
 
 class Sala:
-    def __init__(self, jogador1, jogador2):
+    def __init__(self, jogador1, jogador2, servidor, id_sala):
         self.jogador1 = jogador1
         self.jogador2 = jogador2
-        self.lock = threading.Lock()
+        self.servidor = servidor
+        self.id_sala = id_sala
 
     def iniciar(self):
         threading.Thread(target=self.rodar_partidas, daemon=True).start()
@@ -19,7 +20,6 @@ class Sala:
             self.jogo = JogoDaVela()
             self.turno = 'X'
             self.jogadores = {'X': self.jogador1, 'O': self.jogador2}
-            self.simbolos = {self.jogador1: 'X', self.jogador2: 'O'}
 
             partida_ativa = True
             while partida_ativa:
@@ -28,20 +28,26 @@ class Sala:
                 outro = self.jogador1 if atual == self.jogador2 else self.jogador2
 
                 try:
-                    #atual.sendall(f"Sua vez ({self.turno}): ".encode())
                     atual.sendall(f"Sua vez ({self.turno}): \n".encode())
-
                     jogada = atual.recv(1024).decode().strip()
                 except:
-                    outro.sendall("O outro jogador caiu. Encerrando.\n".encode())
-                    outro.close()
+                    outro.sendall("O outro jogador caiu. Encerrando em 5 segundos...\n".encode())
+                    time.sleep(5)
+                    self.servidor.remover_sala(self.id_sala)
                     return
 
                 if jogada.upper() == "SAIR":
                     atual.sendall("Você encerrou a partida.\n".encode())
-                    outro.sendall("O outro jogador saiu. Encerrando.\n".encode())
-                    outro.close()
-                    atual.close()
+                    outro.sendall("O outro jogador saiu. Encerrando em 5 segundos...\n".encode())
+                    time.sleep(5)
+                    try:
+                        atual.shutdown(socket.SHUT_RDWR)
+                        atual.close()
+                        outro.shutdown(socket.SHUT_RDWR)
+                        outro.close()
+                    except:
+                        pass
+                    self.servidor.remover_sala(self.id_sala)
                     return
 
                 if not self.jogo.fazer_jogada(jogada, self.turno):
@@ -54,27 +60,28 @@ class Sala:
                     if vencedor == 'empate':
                         self.broadcast("Empate!\n")
                     else:
-                        self.jogadores[vencedor].sendall("Você venceu!\n".encode())
-                        perdedor = self.jogador1 if self.jogadores[vencedor] == self.jogador2 else self.jogador2
+                        ganhador = self.jogadores[vencedor]
+                        perdedor = self.jogador1 if ganhador == self.jogador2 else self.jogador2
+                        ganhador.sendall("Você venceu!\n".encode())
                         perdedor.sendall("Você perdeu!\n".encode())
                     partida_ativa = False
                 else:
                     self.turno = 'O' if self.turno == 'X' else 'X'
 
             continuar = self.perguntar_nova_partida()
-            
-        return False
-            
+
+        self.servidor.remover_sala(self.id_sala)
+
     def enviar_tabuleiro(self):
         estado = self.jogo.exibir_tabuleiro()
         self.broadcast(estado)
 
     def broadcast(self, mensagem):
-        try:
-            self.jogador1.sendall(mensagem.encode())
-            self.jogador2.sendall(mensagem.encode())
-        except:
-            pass
+        for sock in (self.jogador1, self.jogador2):
+            try:
+                sock.sendall(mensagem.encode())
+            except:
+                pass
 
     def perguntar_nova_partida(self):
         try:
@@ -84,24 +91,21 @@ class Sala:
             resp1 = self.jogador1.recv(1024).decode().strip().upper()
             resp2 = self.jogador2.recv(1024).decode().strip().upper()
 
-            if resp1 == "SAIR":
-                self.jogador2.sendall(b"O outro jogador saiu. Encerrando...\n")
-                return False
-            if resp2 == "SAIR":
-                self.jogador1.sendall(b"O outro jogador saiu. Encerrando...\n")
+            if resp1 == "SAIR" or resp2 == "SAIR":
+                self.broadcast("Encerrando...\n")
                 return False
 
             if resp1 == "SIM" and resp2 == "SIM":
                 self.broadcast("Iniciando nova partida!\n")
                 return True
             elif resp1 == "SIM":
-                self.jogador1.sendall("Aguardando novo jogador...\n".encode())
-                self.jogador2.sendall("Você saiu do jogo.\n".encode())
+                self.servidor.reenfileirar(self.jogador1)
+                self.jogador2.sendall(b"Voce saiu do jogo. Encerrando...\n")
                 self.jogador2.close()
                 return False
             elif resp2 == "SIM":
-                self.jogador2.sendall("Aguardando novo jogador...\n".encode())
-                self.jogador1.sendall("Você saiu do jogo.\n".encode())
+                self.servidor.reenfileirar(self.jogador2)
+                self.jogador1.sendall(b"Voce saiu do jogo. Encerrando...\n")
                 self.jogador1.close()
                 return False
             else:
