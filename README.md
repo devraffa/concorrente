@@ -11,7 +11,7 @@
         - Quando o outro desiste no meio ou quando não quer continuar jogando
 
 ## Erros:
-    - ?
+    - O jogador retornar para a fila na opção quer quer continuar jogando mas o outro diz primeiro que vai sair (O encerra a conexão normalmente de um mas o outro não volta para a fila)
 
 ## Últimas correções:
     - Ao encerrar a partida se um deles quiser continuar ele volta para a fila
@@ -20,7 +20,5 @@
 
 
 ## Não implementado
-    - Sistema de "login" para contagem de vitórias
-    - Métricas de desempenho
-    - "Printar" no terminal do servidor quando um cliente se desconecta (e qual se desconectou)
+    - Métricas de desempenho que servivam pra comparar paralelismo e sequencial ?
 
