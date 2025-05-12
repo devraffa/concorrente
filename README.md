@@ -14,6 +14,8 @@
     - O jogador retornar para a fila na opção quer quer continuar jogando mas o outro diz primeiro que vai sair (O encerra a conexão normalmente de um mas o outro não volta para a fila)
 
 ## Últimas correções:
+    - Conexão com outro servidor (alterando portas)
+    - Na reconexão os nomes estavam invertidos (corrigido)
 
 
 

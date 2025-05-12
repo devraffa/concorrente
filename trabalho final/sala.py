@@ -43,11 +43,12 @@ class Sala:
 
                     while True:
                         jogada = atual.recv(1024).decode().strip()
+                        
                         if jogada.upper() == "SAIR":
                             atual.sendall("DESCONECTADO\n".encode())
                             outro.sendall("[AVISO] O outro jogador saiu. Você voltará à fila.\n")
                             time.sleep(1)
-                            self.servidor.reenfileirar(outro, self.nome1 if atual == self.jogador2 else self.nome2)
+                            self.servidor.reenfileirar(outro, self.nome2 if atual == self.jogador2 else self.nome1)
                             atual.shutdown(socket.SHUT_RDWR)
                             atual.close()
                             self.servidor.remover_sala(self.id_sala)
@@ -60,7 +61,7 @@ class Sala:
                 except:
                     outro.sendall("[AVISO] O outro jogador caiu. Você voltará à fila.\n".encode())
                     time.sleep(1)
-                    self.servidor.reenfileirar(outro, self.nome2 if atual == self.jogador2 else self.nome1)
+                    self.servidor.reenfileirar(outro, self.nome1 if atual == self.jogador2 else self.nome2)
                     self.servidor.remover_sala(self.id_sala)
                     return
 
@@ -130,6 +131,8 @@ class Sala:
             if resp1 == "SIM" and resp2 == "SIM":
                 self.broadcast("Iniciando nova partida!\n")
                 return True
+            
+            #?
             elif resp1 == "SIM":
                 self.jogador1.sendall(b"[AVISO] Voce voltou para a fila.\n")
                 self.servidor.reenfileirar(self.jogador1, self.nome1)
@@ -156,5 +159,7 @@ class Sala:
                 except:
                     pass
                 return False
+            #?
+            
         except:
             return False

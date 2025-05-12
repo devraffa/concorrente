@@ -33,7 +33,8 @@ def enviar_para_servidor(sock):
 
 def main():
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect(('localhost', 12345))
+    host = input("Digite o IP do host: ")
+    sock.connect((host, 12345))
     nome = input("Digite seu nome de login: ")
     sock.sendall(nome.encode())
     print("[CLIENTE] Conectado ao servidor! Aguardando outro jogador...")

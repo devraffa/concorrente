@@ -86,7 +86,7 @@ class Servidor:
                 self.exibir_metricas()
                 break
 
-    def iniciar(self, host='localhost', porta=12345):
+    def iniciar(self, host='0.0.0.0', porta=12345):
         servidor = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         servidor.bind((host, porta))
         servidor.listen()
