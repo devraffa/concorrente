@@ -102,64 +102,45 @@ class Sala:
             resp1 = self.jogador1.recv(1024).decode().strip().upper()
             resp2 = self.jogador2.recv(1024).decode().strip().upper()
 
-            if resp1 == "SAIR" and resp2 != "SAIR":
+            if resp1 == "SAIR":
                 try:
                     self.jogador1.sendall(b"DESCONECTADO\n")
-                    self.jogador2.sendall(b"[AVISO] O outro jogador saiu. Voce voltare e fila.\n")
-                    self.servidor.reenfileirar(self.jogador2, self.nome2)
                 except:
                     pass
+            if resp2 == "SAIR":
+                try:
+                    self.jogador2.sendall(b"DESCONECTADO\n")
+                except:
+                    pass
+
+            # Agora decidimos com base em ambas as respostas
+            if resp1 == "SAIR" and resp2 != "SAIR":
+                self.jogador2.sendall(b"[AVISO] O outro jogador saiu. Voce voltara a fila.\n")
+                self.servidor.reenfileirar(self.jogador2, self.nome2)
                 return False
 
             if resp2 == "SAIR" and resp1 != "SAIR":
-                try:
-                    self.jogador2.sendall(b"DESCONECTADO\n")
-                    self.jogador1.sendall(b"[AVISO] O outro jogador saiu. Voce voltare e fila.\n")
-                    self.servidor.reenfileirar(self.jogador1, self.nome1)
-                except:
-                    pass
+                self.jogador1.sendall(b"[AVISO] O outro jogador saiu. Voce voltara a fila.\n")
+                self.servidor.reenfileirar(self.jogador1, self.nome1)
                 return False
 
             if resp1 == "SAIR" and resp2 == "SAIR":
-                try:
-                    self.jogador1.sendall(b"DESCONECTADO\n")
-                    self.jogador2.sendall(b"DESCONECTADO\n")
-                except:
-                    pass
                 return False
 
             if resp1 == "SIM" and resp2 == "SIM":
                 self.broadcast("Iniciando nova partida!\n")
                 return True
-            
-            #?
-            elif resp1 == "SIM":
+
+            if resp1 == "SIM":
                 self.jogador1.sendall(b"[AVISO] Voce voltou para a fila.\n")
                 self.servidor.reenfileirar(self.jogador1, self.nome1)
-                try:
-                    self.jogador2.sendall(b"Voce saiu do jogo. Encerrando...\n")
-                    self.jogador2.close()
-                except:
-                    pass
                 return False
-            elif resp2 == "SIM":
+
+            if resp2 == "SIM":
                 self.jogador2.sendall(b"[AVISO] Voce voltou para a fila.\n")
                 self.servidor.reenfileirar(self.jogador2, self.nome2)
-                try:
-                    self.jogador1.sendall(b"Voce saiu do jogo. Encerrando...\n")
-                    self.jogador1.close()
-                except:
-                    pass
                 return False
-            else:
-                self.broadcast("Encerrando conexão. Obrigado por jogar!\n")
-                try:
-                    self.jogador1.close()
-                    self.jogador2.close()
-                except:
-                    pass
-                return False
-            #?
-            
+
+            return False
         except:
             return False
