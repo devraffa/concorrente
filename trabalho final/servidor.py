@@ -1,4 +1,3 @@
-## servidor.py
 import socket
 import threading
 import time
@@ -6,7 +5,7 @@ from sala import Sala
 
 class Servidor:
     def __init__(self):
-        self.fila_espera = []  # (conn, nome, timestamp)
+        self.fila_espera = []
         self.fila_lock = threading.Lock()
         self.salas_ativas = {}
         self.sala_id_counter = 0
@@ -91,12 +90,10 @@ class Servidor:
         servidor.bind((host, porta))
         servidor.listen()
 
-        # Mostra IP da máquina (útil para clientes na rede)
         hostname = socket.gethostname()
         ip_local = socket.gethostbyname(hostname)
         print(f"[INFO] IP local do servidor (conecte-se com esse IP): {ip_local}")
         print(f"[SERVIDOR] Iniciado em {host}:{porta}")
-
 
         threading.Thread(target=self.monitorar_comando, daemon=True).start()
 

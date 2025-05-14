@@ -1,4 +1,3 @@
-## cliente.py
 import socket
 import threading
 
@@ -9,7 +8,7 @@ def receber_mensagens(sock):
             if not mensagem:
                 break
             if mensagem.strip().startswith("┌") or "│" in mensagem:
-                print(mensagem, end='')  # imprime o tabuleiro sem prefixo
+                print(mensagem, end='') 
             elif mensagem.strip().upper() == "DESCONECTADO":
                 print("[CLIENTE] Você foi desconectado pelo servidor.")
                 sock.close()

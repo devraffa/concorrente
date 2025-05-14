@@ -1,5 +1,3 @@
-
-## sala.py
 import threading
 import socket
 import time
