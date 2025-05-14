@@ -90,7 +90,13 @@ class Servidor:
         servidor = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         servidor.bind((host, porta))
         servidor.listen()
+
+        # Mostra IP da máquina (útil para clientes na rede)
+        hostname = socket.gethostname()
+        ip_local = socket.gethostbyname(hostname)
+        print(f"[INFO] IP local do servidor (conecte-se com esse IP): {ip_local}")
         print(f"[SERVIDOR] Iniciado em {host}:{porta}")
+
 
         threading.Thread(target=self.monitorar_comando, daemon=True).start()
 
