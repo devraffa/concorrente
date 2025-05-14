@@ -1,7 +1,8 @@
+
+## sala.py
 import threading
 import socket
 import time
-import select
 from jogo import JogoDaVela
 
 class Sala:
@@ -41,41 +42,24 @@ class Sala:
                     atual.sendall(f"Sua vez ({self.turno}):\n".encode())
 
                     while True:
-                        readable, _, _ = select.select([self.jogador1, self.jogador2], [], [], 0.1)
-                        for sock in readable:
-                            try:
-                                msg = sock.recv(1024).decode().strip()
-                                if not msg:
-                                    raise ConnectionError
-
-                                if sock != atual:
-                                    sock.sendall(b"[AVISO] Nao e o seu turno.\n")
-                                    continue
-
-                                if msg.upper() == "SAIR":
-                                    atual.sendall("DESCONECTADO\n".encode())
-                                    outro.sendall("[AVISO] O outro jogador saiu. Voce voltara a fila.\n".encode())
-                                    time.sleep(1)
-                                    self.servidor.reenfileirar(outro, self.nome2 if atual == self.jogador2 else self.nome1)
-                                    atual.shutdown(socket.SHUT_RDWR)
-                                    atual.close()
-                                    self.servidor.remover_sala(self.id_sala)
-                                    return
-
-                                if msg in [str(i) for i in range(1, 10)]:
-                                    if self.jogo.fazer_jogada(msg, self.turno):
-                                        jogada_feita = True
-                                        break
-                                    else:
-                                        atual.sendall("[AVISO] Entrada invalida ou posicao ocupada.\n".encode())
-                            except:
-                                continue
-                        if 'jogada_feita' in locals():
-                            del jogada_feita
+                        jogada = atual.recv(1024).decode().strip()
+                        
+                        if jogada.upper() == "SAIR":
+                            atual.sendall("DESCONECTADO\n".encode())
+                            outro.sendall("[AVISO] O outro jogador saiu. Você voltará à fila.\n")
+                            time.sleep(1)
+                            self.servidor.reenfileirar(outro, self.nome2 if atual == self.jogador2 else self.nome1)
+                            atual.shutdown(socket.SHUT_RDWR)
+                            atual.close()
+                            self.servidor.remover_sala(self.id_sala)
+                            return
+                        elif jogada in [str(i) for i in range(1, 10)] and self.jogo.fazer_jogada(jogada, self.turno):
                             break
+                        else:
+                            atual.sendall("[AVISO] Entrada inválida ou não é sua vez.\n".encode())
 
                 except:
-                    outro.sendall("[AVISO] O outro jogador caiu. Voce voltara a fila.\n".encode())
+                    outro.sendall("[AVISO] O outro jogador caiu. Você voltará à fila.\n".encode())
                     time.sleep(1)
                     self.servidor.reenfileirar(outro, self.nome1 if atual == self.jogador2 else self.nome2)
                     self.servidor.remover_sala(self.id_sala)
@@ -88,8 +72,8 @@ class Sala:
                         self.broadcast("Empate!\n")
                     else:
                         ganhador = self.jogadores[vencedor]
-                        ganhador.sendall("Voce venceu!\n".encode())
-                        outro.sendall("Voce perdeu!\n".encode())
+                        ganhador.sendall("Você venceu!\n".encode())
+                        outro.sendall("Você perdeu!\n".encode())
                     partida_ativa = False
                 else:
                     self.turno = 'O' if self.turno == 'X' else 'X'
@@ -129,6 +113,7 @@ class Sala:
                 except:
                     pass
 
+            # Agora decidimos com base em ambas as respostas
             if resp1 == "SAIR" and resp2 != "SAIR":
                 self.jogador2.sendall(b"[AVISO] O outro jogador saiu. Voce voltara a fila.\n")
                 self.servidor.reenfileirar(self.jogador2, self.nome2)
